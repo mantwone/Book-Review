@@ -432,6 +432,30 @@
     background: transparent;
   }
   .modal-actions .confirm{ background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  .google-search-link{
+    display: block;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--accent-deep);
+    text-decoration: none;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    transition: background 0.15s ease;
+  }
+  .google-search-link:hover{ background: var(--photo-fill); }
+
+  .modal-hint{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    margin: 0 0 14px;
+  }
 </style>
 </head>
 <body>
@@ -503,6 +527,8 @@
 <div class="overlay" id="photo-overlay">
   <div class="modal">
     <h3>Photo du livre</h3>
+    <a id="google-images-link" href="#" target="_blank" rel="noopener" class="google-search-link">🔍 Chercher la couverture sur Google Images</a>
+    <p class="modal-hint">Clic droit sur l'image qui te plaît → <em>Copier l'adresse de l'image</em> → colle-la ci-dessous.</p>
     <input type="text" id="photo-url-input" placeholder="https://…">
     <div class="modal-actions">
       <button id="cancel-photo">Annuler</button>
@@ -740,6 +766,12 @@ document.getElementById('grid').addEventListener('click', (e) => {
     photoTargetId = card.dataset.id;
     const book = findBook(photoTargetId);
     document.getElementById('photo-url-input').value = book.photoUrl || '';
+
+    const query = encodeURIComponent(`${book.title} ${book.author || ''} couverture livre`.trim());
+    const searchUrl = `https://www.google.com/search?tbm=isch&q=${query}`;
+    document.getElementById('google-images-link').href = searchUrl;
+    window.open(searchUrl, '_blank', 'noopener');
+
     document.getElementById('photo-overlay').classList.add('open');
     document.getElementById('photo-url-input').focus();
     return;
