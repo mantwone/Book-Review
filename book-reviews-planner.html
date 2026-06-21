@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #FDFCFA;
+    --line: #B7BEC6;
+    --line-soft: #D8DCE1;
+    --ink: #33363B;
+    --ink-soft: #7C828A;
+    --accent: #8C97A6;
+    --accent-deep: #5B6573;
+    --star-empty: #D2D6DB;
+    --photo-fill: #EDEEF0;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  .page-frame{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 28px 70px;
+    position: relative;
+  }
+
+  /* corner doodles */
+  .doodle{
+    position: absolute;
+    opacity: 0.5;
+    pointer-events: none;
+    stroke: var(--ink-soft);
+  }
+
+  /* ---------- Header ---------- */
+
+  .hero{
+    text-align: center;
+    padding: 20px 10px 30px;
+    position: relative;
+  }
+
+  .hero h1{
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: clamp(2.8rem, 9vw, 4rem);
+    margin: 0 0 6px;
+    color: var(--ink);
+    transform: rotate(-1deg);
+  }
+
+  .hero .underline{
+    width: 220px;
+    height: 10px;
+    margin: 0 auto 14px;
+  }
+
+  .hero p.sub{
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    font-style: italic;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Stats ---------- */
+
+  .stats{
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin: 22px 0 8px;
+    flex-wrap: wrap;
+    font-family: 'Space Mono', monospace;
+  }
+  .stat{ text-align: center; }
+  .stat .n{
+    font-size: 1.4rem;
+    color: var(--accent-deep);
+    display: block;
+    line-height: 1;
+  }
+  .stat .l{
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Controls ---------- */
+
+  .controls{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 28px 0 26px;
+    padding-bottom: 18px;
+    border-bottom: 1.5px dashed var(--line-soft);
+  }
+
+  .search-wrap{ flex: 1 1 200px; position: relative; }
+  .search-wrap input{
+    width: 100%;
+    padding: 9px 12px 9px 30px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .search-wrap input:focus{ outline: none; border-color: var(--accent-deep); }
+  .search-wrap svg{ position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.5; pointer-events: none; }
+
+  .filter-pills{ display: flex; gap: 6px; }
+  .pill{
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    padding: 8px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .pill.active{ background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  .add-btn{
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    padding: 9px 14px;
+    border: 1.5px dashed var(--ink);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .add-btn:hover{ background: var(--ink); color: var(--paper); border-style: solid; }
+
+  /* ---------- Review card (planner style) ---------- */
+
+  .deck{ display: flex; flex-direction: column; gap: 26px; }
+
+  .card{
+    position: relative;
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
+    padding: 18px;
+    background: var(--paper);
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 16px;
+  }
+
+  .card-photo{
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: var(--photo-fill);
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-photo svg{ opacity: 0.35; }
+
+  .card-main{ display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+
+  .card-top-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .stars{ display: flex; gap: 3px; }
+  .star-btn{
+    background: none; border: none; cursor: pointer; padding: 0; line-height: 0;
+  }
+  .star-btn svg{ width: 19px; height: 19px; }
+  .star-btn .pt{ fill: var(--star-empty); stroke: var(--star-empty); transition: fill 0.12s, stroke 0.12s; }
+  .star-btn.filled .pt{ fill: var(--accent-deep); stroke: var(--accent-deep); }
+  .star-btn:hover .pt{ stroke: var(--accent-deep); }
+
+  .recommend{
+    font-family: 'Space Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .recommend select{
+    font-family: 'Space Mono', monospace;
+    font-size: 9.5px;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .recommend select:focus{ outline: none; }
+
+  .field-row{
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    border-bottom: 1.3px dotted var(--line-soft);
+    padding-bottom: 4px;
+  }
+  .field-label{
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .field-value{
+    flex: 1;
+    font-size: 1.05rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    min-width: 0;
+  }
+  .field-value:focus{ outline: none; }
+  [contenteditable="true"].field-value:empty::before{
+    content: attr(data-placeholder);
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  .thoughts-wrap{
+    margin-top: 4px;
+  }
+  .thoughts-wrap .field-label{ display: block; margin-bottom: 4px; }
+  .thoughts-lines{
+    position: relative;
+  }
+  textarea.thoughts{
+    width: 100%;
+    border: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 25px,
+        var(--line-soft) 25px, var(--line-soft) 26.5px
+      );
+    line-height: 26.5px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--ink);
+    resize: vertical;
+    min-height: 80px;
+    padding: 0;
+  }
+  textarea.thoughts:focus{ outline: none; }
+  textarea.thoughts::placeholder{ color: var(--ink-soft); opacity: 0.6; }
+
+  .remove-x{
+    background: none; border: none; color: var(--ink-soft);
+    opacity: 0.3; cursor: pointer; font-size: 17px; line-height: 1; padding: 0 2px;
+  }
+  .remove-x:hover{ opacity: 1; color: #B5443A; }
+
+  .saved-tick{
+    position: absolute;
+    bottom: 8px; right: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--accent-deep);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .saved-tick.show{ opacity: 0.7; }
+
+  @media (max-width: 480px){
+    .card{ grid-template-columns: 64px 1fr; padding: 14px; }
+    .card-photo{ min-height: 110px; }
+  }
+
+  .empty-state{
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  footer{
+    text-align: center;
+    padding: 30px 20px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-soft);
+    letter-spacing: 0.03em;
+  }
+
+  /* Modal */
+  .overlay{
+    position: fixed; inset: 0;
+    background: rgba(50,50,55,0.4);
+    display: none; align-items: center; justify-content: center;
+    z-index: 50; padding: 20px;
+  }
+  .overlay.open{ display: flex; }
+  .modal{
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    max-width: 380px; width: 100%;
+    padding: 26px;
+  }
+  .modal h3{
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 1.7rem;
+    margin: 0 0 14px;
+  }
+  .modal input{
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    margin-bottom: 14px;
+  }
+  .modal input:focus{ outline: none; border-color: var(--accent-deep); }
+  .modal-actions{ display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-actions button{
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1.5px solid var(--line);
+    background: transparent;
+  }
+  .modal-actions .confirm{ background: var(--ink); border-color: var(--ink); color: var(--paper); }
+</style>
+</head>
+<body>
+
+<div class="page-frame">
+
+  <svg class="doodle" style="top:8px; left:0px;" width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M3 11l18-8-7 18-3-7-8-3z" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  <svg class="doodle" style="top:6px; right:4px;" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2l1.6 6.8L20 11l-6.4 2.2L12 20l-1.6-6.8L4 11l6.4-2.2L12 2z" stroke-width="1.1" stroke-linejoin="round"/></svg>
+  <svg class="doodle" style="bottom:14px; left:2px;" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke-width="1.4" stroke-linecap="round"/></svg>
+  <svg class="doodle" style="bottom:10px; right:0px;" width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 11l18-8-7 18-3-7-8-3z" stroke-width="1.2" stroke-linejoin="round" transform="rotate(200 12 12)"/></svg>
+
+  <div class="hero">
+    <h1>Book Reviews</h1>
+    <svg class="underline" viewBox="0 0 220 10" fill="none"><path d="M3 6c40-6 80-6 110 0s70 4 104-2" stroke="#33363B" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <p class="sub">Un avis par livre, à deux. Étoile-le, note tes pensées.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="n" id="stat-total">–</span><span class="l">Livres</span></div>
+    <div class="stat"><span class="n" id="stat-reviewed">–</span><span class="l">Avis écrits</span></div>
+    <div class="stat"><span class="n" id="stat-pending">–</span><span class="l">À noter</span></div>
+    <div class="stat"><span class="n" id="stat-avg">–</span><span class="l">Note moyenne</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#7C828A" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="#7C828A" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" id="search" placeholder="Chercher un titre…">
+    </div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all">Tous</button>
+      <button class="pill" data-filter="pending">À noter</button>
+      <button class="pill" data-filter="reviewed">Avec avis</button>
+    </div>
+    <button class="add-btn" id="open-add">+ Ajouter</button>
+  </div>
+
+  <div class="deck" id="grid"></div>
+  <div class="empty-state" id="empty-state" style="display:none;">Aucun livre ne correspond à cette recherche.</div>
+
+  <footer>fait main, pour vous deux · données issues de Vinted</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>Nouveau livre</h3>
+    <input type="text" id="new-title" placeholder="Titre du livre">
+    <div class="modal-actions">
+      <button id="cancel-add">Annuler</button>
+      <button class="confirm" id="confirm-add">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SEED_BOOKS = [{"title": "Daisy Jones & the Six - Taylor Jenkins Reid", "date": "2026-03-07"}, {"title": "Jane Eyre - Charlotte Brontë", "date": "2026-03-07"}, {"title": "They Both Doe at the End - Adam Silvera", "date": "2026-03-07"}, {"title": "The Invisible Life of Addie Larue.", "date": "2026-03-22"}, {"title": "First-Time Caller, tome 1.", "date": "2026-03-22"}, {"title": "Livre A Man Called Ove", "date": "2026-03-22"}, {"title": "Beautiful world where are you", "date": "2026-03-22"}, {"title": "Livre The Seven Husbands of Evelyn Hugo", "date": "2026-03-22"}, {"title": "Livre", "date": "2026-03-22"}, {"title": "Book Fourth Wing", "date": "2026-04-04"}, {"title": "Red rising trilogie pierce brown 3 boeken", "date": "2026-04-04"}, {"title": "3 boeken Jennifer Lynn barnes", "date": "2026-04-05"}, {"title": "Trilogía Scythe en inglés", "date": "2026-04-07"}, {"title": "One of us is lying", "date": "2026-04-08"}, {"title": "Clockwork Angel", "date": "2026-04-08"}, {"title": "Sharp objects", "date": "2026-04-08"}, {"title": "📖🔴 One of Us Is Lying – Karen M. McManus", "date": "2026-04-09"}, {"title": "📖🌅 One True Loves – Taylor Jenkins Reid", "date": "2026-04-09"}, {"title": "Ninth house", "date": "2026-05-02"}, {"title": "The Night Circus", "date": "2026-05-02"}, {"title": "The cruel prince", "date": "2026-05-02"}, {"title": "Ruin and rising", "date": "2026-05-02"}, {"title": "Shadow and bone", "date": "2026-05-02"}, {"title": "Siege and storm", "date": "2026-05-02"}, {"title": "The unmaking of june farrow", "date": "2026-05-02"}, {"title": "Six crimson cranes", "date": "2026-05-02"}, {"title": "Shadow and Bone trilogy", "date": "2026-05-09"}, {"title": "The Six of Crows Duology", "date": "2026-05-09"}, {"title": "Pride and Prejudice - Jane Austen", "date": "2026-05-12"}, {"title": "The Priory of the Orange Three - Samantha Shannon", "date": "2026-05-12"}, {"title": "Meat market - Juno Dawson", "date": "2026-05-13"}, {"title": "The last thing he told me - Laura Dave", "date": "2026-05-13"}, {"title": "Livre One Of Us Is Next en anglais", "date": "2026-05-14"}, {"title": "Livre I am Malala", "date": "2026-05-14"}, {"title": "Book The Testaments - Margaret Atwood", "date": "2026-05-14"}, {"title": "If we were villains - m l Rio", "date": "2026-05-14"}, {"title": "Where the crawdags sing - delia Owen’s", "date": "2026-05-14"}, {"title": "Malibu Rising - Taylor Jenkins Reid", "date": "2026-05-14"}, {"title": "Taylor Jenkins Reid - After I do", "date": "2026-05-14"}, {"title": "Caraval series Engelstalig", "date": "2026-05-14"}, {"title": "Bride en Mate van Ali Hazelwood", "date": "2026-05-14"}, {"title": "Done and Dusted series van Lyla Sage Engelstalig", "date": "2026-05-14"}, {"title": "Abby Jimenez boeken", "date": "2026-05-14"}, {"title": "Emily Henry boeken - Engelstalig", "date": "2026-05-14"}, {"title": "People We Meet On Vacation - Emily Henry", "date": "2026-05-14"}, {"title": "Part Of Your World - Abby Jimenez", "date": "2026-05-14"}, {"title": "Her Magesty’s Royal Coven by Juno Dawson", "date": "2026-05-14"}, {"title": "5 books of the shatter me serie", "date": "2026-05-16"}, {"title": "Red, white and royal blue", "date": "2026-05-16"}, {"title": "Blue sisters", "date": "2026-05-16"}, {"title": "Lit throne of glass saga", "date": "2026-05-17"}, {"title": "The Great Alone ~ Kristin Hannah", "date": "2026-05-25"}, {"title": "The Paradise Problem ~ Christina Lauren", "date": "2026-05-25"}, {"title": "Powerless ~ Lauren Roberts", "date": "2026-05-25"}, {"title": "Dreams Lie Beneath ~ Rebecca Ross", "date": "2026-05-25"}, {"title": "The Nightingale ~ Kristin Hannah", "date": "2026-05-25"}, {"title": "Cleopatra and Frankenstein ~ Coco Mellors", "date": "2026-05-25"}, {"title": "De twisted serie van Anna huang", "date": "2026-05-29"}, {"title": "Lolita - Vladimir Nabokov", "date": "2026-05-30"}, {"title": "Oryx and Crake - Margaret Atwood", "date": "2026-05-30"}, {"title": "Nine Perfect Strangers – Liane Moriarty", "date": "2026-05-30"}, {"title": "'Salem's Lot - Stephen King", "date": "2026-05-30"}, {"title": "Alias Grace - Margaret Atwood", "date": "2026-05-30"}, {"title": "The Final Empire - Brandon Sanderson", "date": "2026-05-30"}, {"title": "Tress of the Emerald Sea - Brandon Sanderson", "date": "2026-05-30"}, {"title": "I Kissed Sarah Wheeler de Casey McQuiston", "date": "2026-05-30"}, {"title": "Psyche and Eros de Luna McNamara", "date": "2026-05-30"}, {"title": "Renegades de Marissa Meyer", "date": "2026-05-30"}, {"title": "Supernova de Marissa Meyer", "date": "2026-05-30"}, {"title": "Arch-Enemies de Marissa Meyer", "date": "2026-05-30"}, {"title": "Daughter of the Pirate King de Tricia Levenseller", "date": "2026-05-30"}, {"title": "Daughter of the Siren Queen de Tricia Levenseller", "date": "2026-05-30"}, {"title": "livre \"bunny\" by Mona Awad", "date": "2026-06-02"}, {"title": "livre \"good material\" de Dolly Alderton", "date": "2026-06-02"}, {"title": "livre \"intermezzo\" de Sally Rooney", "date": "2026-06-02"}, {"title": "livre \"divine rivals\" de Rebecca Ross", "date": "2026-06-02"}, {"title": "🇬🇧Middletide", "date": "2026-06-04"}, {"title": "🇬🇧Starcrossed Dreamless Goddess", "date": "2026-06-04"}, {"title": "🇬🇧Rule of Wolves Leigh Bardugo Hardcover", "date": "2026-06-04"}, {"title": "🇬🇧Six Crimson Cranes Hardcover", "date": "2026-06-04"}, {"title": "🇬🇧Love in the Time of Dragons & Sparks Fly Katie MacAlister (Bundle)", "date": "2026-06-04"}, {"title": "🇬🇧A Deadly Education Hardcover", "date": "2026-06-04"}, {"title": "🇬🇧A Touch of Darkness, A Touch of Ruin, A Touch of Malice (Bundle)", "date": "2026-06-04"}, {"title": "Butcher and Blackbird by Brynne Weaver", "date": "2026-06-05"}, {"title": "Atmosphere by Taylor Jenkins Reid", "date": "2026-06-05"}, {"title": "Educated by Tara Westover", "date": "2026-06-12"}, {"title": "One Hundred Years of Solitude by Gabriel García Marquez", "date": "2026-06-12"}, {"title": "Dark Matter by Blake Crouch", "date": "2026-06-12"}];
+
+let state = null;
+let activeFilter = 'all';
+let searchTerm = '';
+
+function slug(title, idx){
+  return 'b' + idx + '_' + title.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 24);
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get('planner-reviews-state');
+    if(res && res.value){
+      state = JSON.parse(res.value);
+      return;
+    }
+  }catch(e){ /* not found, seed below */ }
+  state = {
+    books: SEED_BOOKS.map((b, i) => ({
+      id: slug(b.title, i),
+      title: b.title,
+      author: '',
+      rating: 0,
+      recommend: '',
+      thoughts: ''
+    }))
+  };
+  await persist();
+}
+
+let saveTimer = null;
+async function persist(){
+  try{ await window.storage.set('planner-reviews-state', JSON.stringify(state)); }
+  catch(e){ console.error('Storage error', e); }
+}
+function schedulePersist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persist, 500);
+}
+
+function starSVG(){
+  return `<svg viewBox="0 0 24 24"><path class="pt" d="M12 2.5l2.97 6.26 6.78 0.86-5 4.95 1.27 6.93L12 17.6l-5.02 3.9 1.27-6.93-5-4.95 6.78-0.86L12 2.5z" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
+}
+
+function renderStars(book){
+  let html = '<div class="stars">';
+  for(let i = 1; i <= 5; i++){
+    const filled = book.rating >= i ? 'filled' : '';
+    html += `<button class="star-btn ${filled}" data-book="${book.id}" data-val="${i}" aria-label="${i} étoile${i>1?'s':''}">${starSVG()}</button>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function bookIconSVG(){
+  return `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7C828A" stroke-width="1.2"><path d="M4 4.5c2-1 5-1 8 0v15c-3-1-6-1-8 0V4.5z"/><path d="M20 4.5c-2-1-5-1-8 0v15c3-1 6-1 8 0V4.5z"/></svg>`;
+}
+
+function escapeHtml(s){
+  const div = document.createElement('div');
+  div.textContent = s || '';
+  return div.innerHTML;
+}
+
+function cardTemplate(book){
+  return `
+  <div class="card" data-id="${book.id}">
+    <div class="card-photo">${bookIconSVG()}</div>
+    <div class="card-main">
+      <div class="card-top-row">
+        ${renderStars(book)}
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="recommend">
+            Recommandé
+            <select data-field="recommend">
+              <option value="" ${book.recommend===''?'selected':''}>—</option>
+              <option value="Oui" ${book.recommend==='Oui'?'selected':''}>Oui</option>
+              <option value="Non" ${book.recommend==='Non'?'selected':''}>Non</option>
+            </select>
+          </div>
+          <button class="remove-x" data-action="delete" title="Retirer ce livre">&times;</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Titre</span>
+        <span class="field-value" contenteditable="true" data-field="title" spellcheck="false">${escapeHtml(book.title)}</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Auteur</span>
+        <span class="field-value" contenteditable="true" data-field="author" data-placeholder="—" spellcheck="false">${escapeHtml(book.author)}</span>
+      </div>
+      <div class="thoughts-wrap">
+        <span class="field-label">Thoughts</span>
+        <textarea class="thoughts" data-field="thoughts" placeholder="Qu'en as-tu pensé ?">${escapeHtml(book.thoughts)}</textarea>
+      </div>
+    </div>
+    <div class="saved-tick">enregistré ✓</div>
+  </div>`;
+}
+
+function matchesFilter(book){
+  const hasReview = book.rating > 0 || book.thoughts.trim().length > 0;
+  if(activeFilter === 'reviewed' && !hasReview) return false;
+  if(activeFilter === 'pending' && hasReview) return false;
+  if(searchTerm && !book.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+  return true;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty-state');
+  const visible = state.books.filter(matchesFilter);
+  if(visible.length === 0){
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    grid.innerHTML = visible.map(cardTemplate).join('');
+  }
+  renderStats();
+}
+
+function renderStats(){
+  const total = state.books.length;
+  const reviewed = state.books.filter(b => b.rating > 0 || b.thoughts.trim()).length;
+  const pending = total - reviewed;
+  const ratings = state.books.filter(b => b.rating > 0).map(b => b.rating);
+  const avg = ratings.length ? (ratings.reduce((a,b) => a+b, 0) / ratings.length).toFixed(1) : '–';
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-reviewed').textContent = reviewed;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-avg').textContent = avg;
+}
+
+function flashSaved(card){
+  const tick = card.querySelector('.saved-tick');
+  if(!tick) return;
+  tick.classList.add('show');
+  clearTimeout(tick._t);
+  tick._t = setTimeout(() => tick.classList.remove('show'), 1400);
+}
+
+function findBook(id){ return state.books.find(b => b.id === id); }
+
+document.getElementById('grid').addEventListener('click', (e) => {
+  const starBtn = e.target.closest('.star-btn');
+  if(starBtn){
+    const id = starBtn.dataset.book;
+    const val = parseInt(starBtn.dataset.val, 10);
+    const book = findBook(id);
+    book.rating = (book.rating === val) ? 0 : val;
+    renderGrid();
+    schedulePersist();
+    return;
+  }
+  const delBtn = e.target.closest('[data-action="delete"]');
+  if(delBtn){
+    const card = delBtn.closest('.card');
+    const id = card.dataset.id;
+    state.books = state.books.filter(b => b.id !== id);
+    renderGrid();
+    schedulePersist();
+    return;
+  }
+});
+
+document.getElementById('grid').addEventListener('input', (e) => {
+  const field = e.target.dataset.field;
+  if(!field) return;
+  const card = e.target.closest('.card');
+  const id = card.dataset.id;
+  const book = findBook(id);
+  if(field === 'title'){ book.title = e.target.textContent.trim(); }
+  else if(field === 'author'){ book.author = e.target.textContent.trim(); }
+  else if(field === 'thoughts'){ book.thoughts = e.target.value; }
+  flashSaved(card);
+  schedulePersist();
+});
+
+document.getElementById('grid').addEventListener('change', (e) => {
+  if(e.target.dataset.field === 'recommend'){
+    const card = e.target.closest('.card');
+    const book = findBook(card.dataset.id);
+    book.recommend = e.target.value;
+    schedulePersist();
+  }
+});
+
+document.getElementById('search').addEventListener('input', (e) => {
+  searchTerm = e.target.value;
+  renderGrid();
+});
+
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    activeFilter = p.dataset.filter;
+    renderGrid();
+  });
+});
+
+const overlay = document.getElementById('overlay');
+document.getElementById('open-add').addEventListener('click', () => {
+  overlay.classList.add('open');
+  document.getElementById('new-title').value = '';
+  document.getElementById('new-title').focus();
+});
+document.getElementById('cancel-add').addEventListener('click', () => overlay.classList.remove('open'));
+overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('open'); });
+
+document.getElementById('confirm-add').addEventListener('click', () => {
+  const title = document.getElementById('new-title').value.trim();
+  if(!title) return;
+  const newBook = {
+    id: 'custom_' + Date.now(),
+    title,
+    author: '',
+    rating: 0,
+    recommend: '',
+    thoughts: ''
+  };
+  state.books.unshift(newBook);
+  overlay.classList.remove('open');
+  activeFilter = 'all';
+  document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+  document.querySelector('.pill[data-filter="all"]').classList.add('active');
+  renderGrid();
+  schedulePersist();
+});
+document.getElementById('new-title').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('confirm-add').click();
+});
+
+(async function init(){
+  await loadState();
+  renderGrid();
+})();
+</script>
+</body>
+</html>
