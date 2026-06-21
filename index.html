@@ -144,6 +144,40 @@
   }
   .pill.active{ background: var(--ink); border-color: var(--ink); color: var(--paper); }
 
+  .dropdown-filters{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .dropdown-filters select{
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    padding: 8px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .dropdown-filters select:focus{ outline: none; border-color: var(--accent-deep); }
+  .dropdown-filters select.is-active{ border-color: var(--ink); color: var(--ink); }
+
+  .clear-filters{
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 8px 4px;
+    display: none;
+  }
+  .clear-filters.show{ display: inline-block; }
+
   .add-btn{
     font-family: 'Space Mono', monospace;
     font-size: 10px;
@@ -182,8 +216,42 @@
     justify-content: center;
     position: relative;
     overflow: hidden;
+    cursor: pointer;
   }
   .card-photo svg{ opacity: 0.35; }
+  .card-photo img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .card-photo .photo-hint{
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 7.5px;
+    text-align: center;
+    color: var(--ink-soft);
+    background: rgba(253,252,250,0.85);
+    padding: 3px 2px;
+    letter-spacing: 0.03em;
+  }
+
+  .genre-tag{
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.03em;
+  }
+  .genre-tag select{
+    font-family: 'Space Mono', monospace;
+    font-size: 9.5px;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .genre-tag select:focus{ outline: none; }
 
   .card-main{ display: flex; flex-direction: column; gap: 9px; min-width: 0; }
 
@@ -399,6 +467,20 @@
       <button class="pill" data-filter="reviewed">Avec avis</button>
     </div>
     <button class="add-btn" id="open-add">+ Ajouter</button>
+    <div class="dropdown-filters">
+      <select id="filter-genre"><option value="">Genre — tous</option></select>
+      <select id="filter-author"><option value="">Auteur — tous</option></select>
+      <select id="filter-rating">
+        <option value="">Note — toutes</option>
+        <option value="5">★★★★★</option>
+        <option value="4">★★★★ et +</option>
+        <option value="3">★★★ et +</option>
+        <option value="2">★★ et +</option>
+        <option value="1">★ et +</option>
+        <option value="0">Sans note</option>
+      </select>
+      <button class="clear-filters" id="clear-filters">Réinitialiser</button>
+    </div>
   </div>
 
   <div class="deck" id="grid"></div>
@@ -418,12 +500,29 @@
   </div>
 </div>
 
+<div class="overlay" id="photo-overlay">
+  <div class="modal">
+    <h3>Photo du livre</h3>
+    <input type="text" id="photo-url-input" placeholder="https://…">
+    <div class="modal-actions">
+      <button id="cancel-photo">Annuler</button>
+      <button class="confirm" id="confirm-photo">Valider</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SEED_BOOKS = [{"title": "Daisy Jones & the Six - Taylor Jenkins Reid", "date": "2026-03-07"}, {"title": "Jane Eyre - Charlotte Brontë", "date": "2026-03-07"}, {"title": "They Both Doe at the End - Adam Silvera", "date": "2026-03-07"}, {"title": "The Invisible Life of Addie Larue.", "date": "2026-03-22"}, {"title": "First-Time Caller, tome 1.", "date": "2026-03-22"}, {"title": "Livre A Man Called Ove", "date": "2026-03-22"}, {"title": "Beautiful world where are you", "date": "2026-03-22"}, {"title": "Livre The Seven Husbands of Evelyn Hugo", "date": "2026-03-22"}, {"title": "Livre", "date": "2026-03-22"}, {"title": "Book Fourth Wing", "date": "2026-04-04"}, {"title": "Red rising trilogie pierce brown 3 boeken", "date": "2026-04-04"}, {"title": "3 boeken Jennifer Lynn barnes", "date": "2026-04-05"}, {"title": "Trilogía Scythe en inglés", "date": "2026-04-07"}, {"title": "One of us is lying", "date": "2026-04-08"}, {"title": "Clockwork Angel", "date": "2026-04-08"}, {"title": "Sharp objects", "date": "2026-04-08"}, {"title": "📖🔴 One of Us Is Lying – Karen M. McManus", "date": "2026-04-09"}, {"title": "📖🌅 One True Loves – Taylor Jenkins Reid", "date": "2026-04-09"}, {"title": "Ninth house", "date": "2026-05-02"}, {"title": "The Night Circus", "date": "2026-05-02"}, {"title": "The cruel prince", "date": "2026-05-02"}, {"title": "Ruin and rising", "date": "2026-05-02"}, {"title": "Shadow and bone", "date": "2026-05-02"}, {"title": "Siege and storm", "date": "2026-05-02"}, {"title": "The unmaking of june farrow", "date": "2026-05-02"}, {"title": "Six crimson cranes", "date": "2026-05-02"}, {"title": "Shadow and Bone trilogy", "date": "2026-05-09"}, {"title": "The Six of Crows Duology", "date": "2026-05-09"}, {"title": "Pride and Prejudice - Jane Austen", "date": "2026-05-12"}, {"title": "The Priory of the Orange Three - Samantha Shannon", "date": "2026-05-12"}, {"title": "Meat market - Juno Dawson", "date": "2026-05-13"}, {"title": "The last thing he told me - Laura Dave", "date": "2026-05-13"}, {"title": "Livre One Of Us Is Next en anglais", "date": "2026-05-14"}, {"title": "Livre I am Malala", "date": "2026-05-14"}, {"title": "Book The Testaments - Margaret Atwood", "date": "2026-05-14"}, {"title": "If we were villains - m l Rio", "date": "2026-05-14"}, {"title": "Where the crawdags sing - delia Owen’s", "date": "2026-05-14"}, {"title": "Malibu Rising - Taylor Jenkins Reid", "date": "2026-05-14"}, {"title": "Taylor Jenkins Reid - After I do", "date": "2026-05-14"}, {"title": "Caraval series Engelstalig", "date": "2026-05-14"}, {"title": "Bride en Mate van Ali Hazelwood", "date": "2026-05-14"}, {"title": "Done and Dusted series van Lyla Sage Engelstalig", "date": "2026-05-14"}, {"title": "Abby Jimenez boeken", "date": "2026-05-14"}, {"title": "Emily Henry boeken - Engelstalig", "date": "2026-05-14"}, {"title": "People We Meet On Vacation - Emily Henry", "date": "2026-05-14"}, {"title": "Part Of Your World - Abby Jimenez", "date": "2026-05-14"}, {"title": "Her Magesty’s Royal Coven by Juno Dawson", "date": "2026-05-14"}, {"title": "5 books of the shatter me serie", "date": "2026-05-16"}, {"title": "Red, white and royal blue", "date": "2026-05-16"}, {"title": "Blue sisters", "date": "2026-05-16"}, {"title": "Lit throne of glass saga", "date": "2026-05-17"}, {"title": "The Great Alone ~ Kristin Hannah", "date": "2026-05-25"}, {"title": "The Paradise Problem ~ Christina Lauren", "date": "2026-05-25"}, {"title": "Powerless ~ Lauren Roberts", "date": "2026-05-25"}, {"title": "Dreams Lie Beneath ~ Rebecca Ross", "date": "2026-05-25"}, {"title": "The Nightingale ~ Kristin Hannah", "date": "2026-05-25"}, {"title": "Cleopatra and Frankenstein ~ Coco Mellors", "date": "2026-05-25"}, {"title": "De twisted serie van Anna huang", "date": "2026-05-29"}, {"title": "Lolita - Vladimir Nabokov", "date": "2026-05-30"}, {"title": "Oryx and Crake - Margaret Atwood", "date": "2026-05-30"}, {"title": "Nine Perfect Strangers – Liane Moriarty", "date": "2026-05-30"}, {"title": "'Salem's Lot - Stephen King", "date": "2026-05-30"}, {"title": "Alias Grace - Margaret Atwood", "date": "2026-05-30"}, {"title": "The Final Empire - Brandon Sanderson", "date": "2026-05-30"}, {"title": "Tress of the Emerald Sea - Brandon Sanderson", "date": "2026-05-30"}, {"title": "I Kissed Sarah Wheeler de Casey McQuiston", "date": "2026-05-30"}, {"title": "Psyche and Eros de Luna McNamara", "date": "2026-05-30"}, {"title": "Renegades de Marissa Meyer", "date": "2026-05-30"}, {"title": "Supernova de Marissa Meyer", "date": "2026-05-30"}, {"title": "Arch-Enemies de Marissa Meyer", "date": "2026-05-30"}, {"title": "Daughter of the Pirate King de Tricia Levenseller", "date": "2026-05-30"}, {"title": "Daughter of the Siren Queen de Tricia Levenseller", "date": "2026-05-30"}, {"title": "livre \"bunny\" by Mona Awad", "date": "2026-06-02"}, {"title": "livre \"good material\" de Dolly Alderton", "date": "2026-06-02"}, {"title": "livre \"intermezzo\" de Sally Rooney", "date": "2026-06-02"}, {"title": "livre \"divine rivals\" de Rebecca Ross", "date": "2026-06-02"}, {"title": "🇬🇧Middletide", "date": "2026-06-04"}, {"title": "🇬🇧Starcrossed Dreamless Goddess", "date": "2026-06-04"}, {"title": "🇬🇧Rule of Wolves Leigh Bardugo Hardcover", "date": "2026-06-04"}, {"title": "🇬🇧Six Crimson Cranes Hardcover", "date": "2026-06-04"}, {"title": "🇬🇧Love in the Time of Dragons & Sparks Fly Katie MacAlister (Bundle)", "date": "2026-06-04"}, {"title": "🇬🇧A Deadly Education Hardcover", "date": "2026-06-04"}, {"title": "🇬🇧A Touch of Darkness, A Touch of Ruin, A Touch of Malice (Bundle)", "date": "2026-06-04"}, {"title": "Butcher and Blackbird by Brynne Weaver", "date": "2026-06-05"}, {"title": "Atmosphere by Taylor Jenkins Reid", "date": "2026-06-05"}, {"title": "Educated by Tara Westover", "date": "2026-06-12"}, {"title": "One Hundred Years of Solitude by Gabriel García Marquez", "date": "2026-06-12"}, {"title": "Dark Matter by Blake Crouch", "date": "2026-06-12"}];
+
+const GENRES = ["Romance", "Fantasy", "Young Adult", "Thriller", "Policier", "Science-fiction", "Classique", "Contemporain", "Biographie", "Historique", "Horreur", "Drame", "Autre"];
 
 let state = null;
 let activeFilter = 'all';
 let searchTerm = '';
+let genreFilter = '';
+let authorFilter = '';
+let ratingFilter = '';
+let photoTargetId = null;
 
 function slug(title, idx){
   return 'b' + idx + '_' + title.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 24);
@@ -434,6 +533,10 @@ async function loadState(){
     const res = await window.storage.get('planner-reviews-state');
     if(res && res.value){
       state = JSON.parse(res.value);
+      state.books.forEach(b => {
+        if(b.genre === undefined) b.genre = '';
+        if(b.photoUrl === undefined) b.photoUrl = '';
+      });
       return;
     }
   }catch(e){ /* not found, seed below */ }
@@ -442,6 +545,8 @@ async function loadState(){
       id: slug(b.title, i),
       title: b.title,
       author: '',
+      genre: '',
+      photoUrl: '',
       rating: 0,
       recommend: '',
       thoughts: ''
@@ -485,9 +590,12 @@ function escapeHtml(s){
 }
 
 function cardTemplate(book){
+  const photoInner = book.photoUrl
+    ? `<img src="${escapeHtml(book.photoUrl)}" alt="Couverture de ${escapeHtml(book.title)}" onerror="this.parentElement.classList.add('img-error')">`
+    : `${bookIconSVG()}<div class="photo-hint">+ photo</div>`;
   return `
   <div class="card" data-id="${book.id}">
-    <div class="card-photo">${bookIconSVG()}</div>
+    <div class="card-photo" data-action="set-photo">${photoInner}</div>
     <div class="card-main">
       <div class="card-top-row">
         ${renderStars(book)}
@@ -511,6 +619,15 @@ function cardTemplate(book){
         <span class="field-label">Auteur</span>
         <span class="field-value" contenteditable="true" data-field="author" data-placeholder="—" spellcheck="false">${escapeHtml(book.author)}</span>
       </div>
+      <div class="field-row">
+        <span class="field-label">Genre</span>
+        <span class="genre-tag">
+          <select data-field="genre">
+            <option value="" ${book.genre===''?'selected':''}>—</option>
+            ${GENRES.map(g => `<option value="${g}" ${book.genre===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </span>
+      </div>
       <div class="thoughts-wrap">
         <span class="field-label">Thoughts</span>
         <textarea class="thoughts" data-field="thoughts" placeholder="Qu'en as-tu pensé ?">${escapeHtml(book.thoughts)}</textarea>
@@ -525,12 +642,44 @@ function matchesFilter(book){
   if(activeFilter === 'reviewed' && !hasReview) return false;
   if(activeFilter === 'pending' && hasReview) return false;
   if(searchTerm && !book.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+  if(genreFilter && book.genre !== genreFilter) return false;
+  if(authorFilter && book.author !== authorFilter) return false;
+  if(ratingFilter !== ''){
+    const rf = parseInt(ratingFilter, 10);
+    if(rf === 0){ if(book.rating !== 0) return false; }
+    else { if(book.rating < rf) return false; }
+  }
   return true;
+}
+
+function populateFilterOptions(){
+  const genreSel = document.getElementById('filter-genre');
+  const authorSel = document.getElementById('filter-author');
+
+  const usedGenres = [...new Set(state.books.map(b => b.genre).filter(Boolean))].sort();
+  const usedAuthors = [...new Set(state.books.map(b => b.author).filter(Boolean))].sort();
+
+  const currentGenre = genreSel.value;
+  genreSel.innerHTML = '<option value="">Genre — tous</option>' +
+    usedGenres.map(g => `<option value="${g}" ${g===currentGenre?'selected':''}>${g}</option>`).join('');
+
+  const currentAuthor = authorSel.value;
+  authorSel.innerHTML = '<option value="">Auteur — tous</option>' +
+    usedAuthors.map(a => `<option value="${escapeHtml(a)}" ${a===currentAuthor?'selected':''}>${escapeHtml(a)}</option>`).join('');
+}
+
+function updateClearButton(){
+  const anyActive = genreFilter || authorFilter || ratingFilter !== '';
+  document.getElementById('clear-filters').classList.toggle('show', !!anyActive);
+  document.getElementById('filter-genre').classList.toggle('is-active', !!genreFilter);
+  document.getElementById('filter-author').classList.toggle('is-active', !!authorFilter);
+  document.getElementById('filter-rating').classList.toggle('is-active', ratingFilter !== '');
 }
 
 function renderGrid(){
   const grid = document.getElementById('grid');
   const empty = document.getElementById('empty-state');
+  populateFilterOptions();
   const visible = state.books.filter(matchesFilter);
   if(visible.length === 0){
     grid.innerHTML = '';
@@ -540,6 +689,7 @@ function renderGrid(){
     grid.innerHTML = visible.map(cardTemplate).join('');
   }
   renderStats();
+  updateClearButton();
 }
 
 function renderStats(){
@@ -584,6 +734,16 @@ document.getElementById('grid').addEventListener('click', (e) => {
     schedulePersist();
     return;
   }
+  const photoBox = e.target.closest('[data-action="set-photo"]');
+  if(photoBox){
+    const card = photoBox.closest('.card');
+    photoTargetId = card.dataset.id;
+    const book = findBook(photoTargetId);
+    document.getElementById('photo-url-input').value = book.photoUrl || '';
+    document.getElementById('photo-overlay').classList.add('open');
+    document.getElementById('photo-url-input').focus();
+    return;
+  }
 });
 
 document.getElementById('grid').addEventListener('input', (e) => {
@@ -600,10 +760,15 @@ document.getElementById('grid').addEventListener('input', (e) => {
 });
 
 document.getElementById('grid').addEventListener('change', (e) => {
+  const card = e.target.closest('.card');
+  if(!card) return;
+  const book = findBook(card.dataset.id);
   if(e.target.dataset.field === 'recommend'){
-    const card = e.target.closest('.card');
-    const book = findBook(card.dataset.id);
     book.recommend = e.target.value;
+    schedulePersist();
+  } else if(e.target.dataset.field === 'genre'){
+    book.genre = e.target.value;
+    renderGrid();
     schedulePersist();
   }
 });
@@ -611,6 +776,47 @@ document.getElementById('grid').addEventListener('change', (e) => {
 document.getElementById('search').addEventListener('input', (e) => {
   searchTerm = e.target.value;
   renderGrid();
+});
+
+document.getElementById('filter-genre').addEventListener('change', (e) => {
+  genreFilter = e.target.value;
+  renderGrid();
+});
+document.getElementById('filter-author').addEventListener('change', (e) => {
+  authorFilter = e.target.value;
+  renderGrid();
+});
+document.getElementById('filter-rating').addEventListener('change', (e) => {
+  ratingFilter = e.target.value;
+  renderGrid();
+});
+document.getElementById('clear-filters').addEventListener('click', () => {
+  genreFilter = ''; authorFilter = ''; ratingFilter = '';
+  document.getElementById('filter-genre').value = '';
+  document.getElementById('filter-author').value = '';
+  document.getElementById('filter-rating').value = '';
+  renderGrid();
+});
+
+const photoOverlay = document.getElementById('photo-overlay');
+document.getElementById('cancel-photo').addEventListener('click', () => {
+  photoOverlay.classList.remove('open');
+  photoTargetId = null;
+});
+photoOverlay.addEventListener('click', (e) => {
+  if(e.target === photoOverlay){ photoOverlay.classList.remove('open'); photoTargetId = null; }
+});
+document.getElementById('confirm-photo').addEventListener('click', () => {
+  if(!photoTargetId) return;
+  const book = findBook(photoTargetId);
+  book.photoUrl = document.getElementById('photo-url-input').value.trim();
+  photoOverlay.classList.remove('open');
+  photoTargetId = null;
+  renderGrid();
+  schedulePersist();
+});
+document.getElementById('photo-url-input').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('confirm-photo').click();
 });
 
 document.querySelectorAll('.pill').forEach(p => {
@@ -638,6 +844,8 @@ document.getElementById('confirm-add').addEventListener('click', () => {
     id: 'custom_' + Date.now(),
     title,
     author: '',
+    genre: '',
+    photoUrl: '',
     rating: 0,
     recommend: '',
     thoughts: ''
